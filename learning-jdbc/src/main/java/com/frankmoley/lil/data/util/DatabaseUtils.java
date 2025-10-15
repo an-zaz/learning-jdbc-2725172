@@ -28,8 +28,8 @@ public class DatabaseUtils {
     return connection;
   }
 
-  public static void handleSqlException(String method, SQLException e, Logger log){
+  public static void handleSqlException(String method, SQLException e, Logger log) {
     log.warning(String.format(exceptionFormat, method, e.getMessage(), e.getErrorCode()));
-    throw new RuntimeException(e);
+    throw new DataAccessException("Database error in " + method, e);
   }
 }
