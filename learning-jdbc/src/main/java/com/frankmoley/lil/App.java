@@ -1,15 +1,13 @@
 package com.frankmoley.lil;
 
-import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
-import com.frankmoley.lil.data.dao.CustomerDao;
-import com.frankmoley.lil.data.dao.ServiceDao;
-import com.frankmoley.lil.data.dao.SimpleProductDao;
-import com.frankmoley.lil.data.entity.Customer;
-import com.frankmoley.lil.data.entity.Service;
+import com.frankmoley.lil.data.dao.NoteDao;
+import com.frankmoley.lil.data.entity.Note;
+import com.frankmoley.lil.data.entity.NoteDraft;
+import com.frankmoley.lil.data.util.DataAccessException;
 
 /**
  * Hello world!
@@ -32,16 +30,23 @@ public class App {
         System.out.println(n3);
 
         System.out.println("\n=== FIND ALL (page 1, limit 5) ===");
-        List<Note> notes = noteDao.findAll(1, 5);
-        notes.forEach(System.out::println);
+        List<Note> notesPaged = noteDao.findAll(1, 5);
+        notesPaged.forEach(System.out::println);
 
         System.out.println("\n=== FIND BY ID ===");
         Optional<Note> found = noteDao.findById(n1.getId());
         found.ifPresent(System.out::println);
 
+        System.out.println("\n=== FIND ALL ===");
+        List<Note> allNotes = noteDao.findAll();
+        allNotes.forEach(System.out::println);
+
         System.out.println("\n=== DELETE ===");
-        boolean deleted = noteDao.delete(n2.getId());
-        System.out.println("Deleted: " + deleted);
+        noteDao.delete(n2.getId());
+
+        System.out.println("\n=== FIND ALL ===");
+        List<Note> notesAfterDelete = noteDao.findAll();
+        notesAfterDelete.forEach(System.out::println);
 
         System.out.println("\n=== IMPORT BATCH ===");
         List<NoteDraft> batch = new ArrayList<>();

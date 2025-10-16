@@ -25,5 +25,4 @@ INSERT INTO wisdom.notes (title, content) VALUES ('Weekly retrospective', 'What 
 INSERT INTO wisdom.notes (title, content) VALUES ('Backup note', 'Ensure daily DB backups and periodic restore tests are scheduled.');
 INSERT INTO wisdom.notes (title, content) VALUES ('Long content example', 'This is a longer note to illustrate storing larger text: it contains a few paragraphs of details about migration steps, risk assessment, rollback plan and monitoring requirements. Keep content under the 10000 character limit.');
 
-CREATE INDEX IF NOT EXISTS idx_note_updated_at ON wisdom.note (updated_at);
-$BODY$;
+CREATE INDEX IF NOT EXISTS idx_note_updated_at ON wisdom.notes (updated_at);

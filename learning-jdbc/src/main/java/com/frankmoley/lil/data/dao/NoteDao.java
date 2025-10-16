@@ -11,30 +11,43 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 import com.frankmoley.lil.data.entity.Note;
+import com.frankmoley.lil.data.entity.NoteDraft;
 import com.frankmoley.lil.data.util.DatabaseUtils;
 
-public class NoteDao implements Dao<Note, long>{
+public class NoteDao implements Dao<Note, NoteDraft, Long>{
   private static final Logger LOGGER = Logger.getLogger(NoteDao.class.getName());
   private static final String GET_ALL = "select * from wisdom.notes";
   private static final String GET_ONE = "select * from wisdom.notes where id = ?";
   private static final String CREATE = "insert into wisdom.notes (title, content) VALUES (?, ?) RETURNING id, title, content, created_at, updated_at";
   private static final String DELETE = "delete from wisdom.notes where id = ?";
-  private static final String GET_ALL_PAGED = "select id, title, content, updated_at, created_at from wisdom.notes order by updatedAt DESC LIMIT ? OFFSET ?";
-  private static final String GET_LATEST = "select * from wisdom.note order by updated_at DESC LIMIT 1";
-  private static final String FIND_BY_TEXT = "select * from wisdom.note where content ILIKE ? order by updated_at DESC";
+  private static final String GET_ALL_PAGED = "select id, title, content, updated_at, created_at from wisdom.notes order by  updated_at DESC LIMIT ? OFFSET ?";
+  private static final String FIND_BY_TEXT = "select * from wisdom.notes where content ILIKE ? order by updated_at DESC";
 
   public List<Note> findAll(int pageNumber, int limit){
     List<Note> notes = new ArrayList<>();
     Connection connection = DatabaseUtils.getConnection();
     int offset = ((pageNumber -1) * limit);
-    try(PreparedStatement statement = connection.prepareStatement(GET_ALL_PAGED)){
+    try(PreparedStatement statement = connection.prepareStatement(GET_ALL_PAGED)) {
       statement.setInt(1, limit);
       statement.setInt(2, offset);
       ResultSet rs = statement.executeQuery();
       notes = this.processResultSet(rs);
       rs.close();
-    }catch (SQLException e){
-      DatabaseUtils.handleSqlException("NoteDao.findAll", e, LOGGER);
+    } catch (SQLException e){
+      DatabaseUtils.handleSqlException("NoteDao.findAll(paged)", e, LOGGER);
+    }
+    return notes;
+  }
+
+  public List<Note> findAll() {
+    List<Note> notes = new ArrayList<>();
+    Connection connection = DatabaseUtils.getConnection();
+    try(Statement statement = connection.createStatement()) {
+      ResultSet rs = statement.executeQuery(GET_ALL);
+      notes = this.processResultSet(rs);
+      rs.close();
+    } catch (SQLException e) {
+      DatabaseUtils.handleSqlException("NoteDao.findAll(all)", e, LOGGER);
     }
     return notes;
   }
@@ -44,7 +57,7 @@ public class NoteDao implements Dao<Note, long>{
     Connection connection = DatabaseUtils.getConnection();
     Note note = null;
 
-    try{
+    try {
       connection.setAutoCommit(false);
       PreparedStatement statement = connection.prepareStatement(CREATE);
       statement.setString(1, entity.getTitle());
@@ -57,7 +70,7 @@ public class NoteDao implements Dao<Note, long>{
       connection.commit();
       rs.close();
       statement.close();
-    }catch (SQLException e) {
+    } catch (SQLException e) {
       try{
         connection.rollback();
       }catch(SQLException sqle){
@@ -70,7 +83,7 @@ public class NoteDao implements Dao<Note, long>{
   }
 
   @Override
-  public void delete(long id) {
+  public void delete(Long id) {
     Connection connection = DatabaseUtils.getConnection();
     try {
       connection.setAutoCommit(false);
@@ -90,7 +103,7 @@ public class NoteDao implements Dao<Note, long>{
   }
 
   @Override
-  public Optional<Note> findById(long id) {
+  public Optional<Note> findById(Long id) {
     try (PreparedStatement statement = DatabaseUtils.getConnection().prepareStatement(GET_ONE)) {
       statement.setLong(1, id);
       ResultSet rs = statement.executeQuery();
@@ -164,8 +177,8 @@ public class NoteDao implements Dao<Note, long>{
       note.setId(rs.getLong("id"));
       note.setTitle(rs.getString("title"));
       note.setContent(rs.getString("content"));
-      note.setUpdatedAt(rs.getString("updated_at"));
-      note.setCreatedAt(rs.getString("created_at"));
+      note.setUpdatedAt(rs.getTimestamp("updated_at"));
+      note.setCreatedAt(rs.getTimestamp("created_at"));
       notes.add(note);
     }
     return notes;
