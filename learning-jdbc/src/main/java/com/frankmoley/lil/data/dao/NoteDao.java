@@ -16,12 +16,26 @@ import com.frankmoley.lil.data.util.DatabaseUtils;
 
 public class NoteDao implements Dao<Note, NoteDraft, Long>{
   private static final Logger LOGGER = Logger.getLogger(NoteDao.class.getName());
+  private static final String COUNT = "select count(*) from wisdom.notes";
   private static final String GET_ALL = "select * from wisdom.notes";
   private static final String GET_ONE = "select * from wisdom.notes where id = ?";
   private static final String CREATE = "insert into wisdom.notes (title, content) VALUES (?, ?) RETURNING id, title, content, created_at, updated_at";
   private static final String DELETE = "delete from wisdom.notes where id = ?";
   private static final String GET_ALL_PAGED = "select id, title, content, updated_at, created_at from wisdom.notes order by  updated_at DESC LIMIT ? OFFSET ?";
   private static final String FIND_BY_TEXT = "select * from wisdom.notes where content ILIKE ? order by updated_at DESC";
+
+  public long countAll() {
+    try (Connection connection = DatabaseUtils.getConnection();
+         Statement stmt = connection.createStatement();
+         ResultSet rs = stmt.executeQuery(COUNT)) {
+      if (rs.next()) {
+        return rs.getLong(1);
+      }
+    } catch (SQLException e) {
+      DatabaseUtils.handleSqlException("NoteDao.countAll", e, LOGGER);
+    }
+    return 0;
+  }
 
   public List<Note> findAll(int pageNumber, int limit){
     List<Note> notes = new ArrayList<>();
