@@ -7,7 +7,11 @@ import java.util.Optional;
 import com.frankmoley.lil.data.dao.NoteDao;
 import com.frankmoley.lil.data.entity.Note;
 import com.frankmoley.lil.data.entity.NoteDraft;
+import com.frankmoley.lil.data.service.NoteService;
 import com.frankmoley.lil.data.util.DataAccessException;
+import com.frankmoley.lil.data.web.NoteController;
+
+import static spark.Spark.port;
 
 /**
  * Hello world!
@@ -66,5 +70,12 @@ public class App {
 
         System.out.println("\n=== FIND ALL AFTER BATCH ===");
         noteDao.findAll(1, 10).forEach(System.out::println);
+
+        port(8080);
+        NoteService service = new NoteService(noteDao);
+        NoteController controller = new NoteController(service);
+        controller.start();
+
+        System.out.println("Server started at http://localhost:8080/api/notes");
     }
 }
